@@ -1,0 +1,10 @@
+struct FoodNode {
+    std::string foodName;
+    float protein;
+    float carbs;
+    float fat;
+    FoodNode* next;
+
+    FoodNode(std::string name, float p, float c, float f)
+    : foodName(name), protein(p), carbs(c), fat(f), next(nullptr) {}
+};

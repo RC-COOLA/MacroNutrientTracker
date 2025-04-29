@@ -1,0 +1,173 @@
+#include <iostream>
+
+#include <fstream>
+
+#include <iomanip>
+
+#include <algorithm>
+
+FoodTracker::FoodTracker() : head(nullptr) {}
+
+FoodTracker::FoodTracker() 
+{
+    FoodNode* current = head;
+    while (current) {
+        FoodNode* next = current->next;
+        delete current;
+        current = next;
+    }
+}
+void FoodTracker::addFood(const std::string& name, float protein, float carbs, float fat) {
+    FoodNode* newNode = new FoodNode(name, protein, carbs, fat);
+    if (!head) {
+     head = newNode;
+    } else {
+    FoodNode* temp = head;
+     while (temp->next)
+     temp = temp->next;
+ temp->next = newNode;
+    }
+}
+
+void FoodTracker::removeFood(const std::string& name) {
+    FoodNode* current = head;
+    FoodNode* prev = nullptr;
+
+ while (current && current->foodName != name) {
+     prev = current;
+     current = current->next;
+    }
+
+    if (!current) {
+    std::cout << "Food not found.\n";
+     return;
+    }
+
+    if (!prev) {
+    head = current->next;
+ } else {
+    prev->next = current->next;
+    }
+delete current;
+    std::cout << "Food removed.\n";
+}
+
+void FoodTracker::displayFoods() const {
+    FoodNode* current = head;
+    std::cout << std::left << std::setw(20) << "Food" 
+   << std::setw(10) << "Protein" 
+     << std::setw(10) << "Carbs" 
+    << std::setw(10) << "Fat\n";
+    while (current) {
+        std::cout << std::left << std::setw(20) << current->foodName 
+          << std::setw(10) << current->protein 
+        << std::setw(10) << current->carbs 
+         << std::setw(10) << current->fat << "\n";
+        current = current->next;
+    }
+}
+
+void FoodTracker::displayTotals() const {
+    float totalProtein = 0, totalCarbs = 0, totalFat = 0;
+    FoodNode* current = head;
+    while (current) {
+        totalProtein += current->protein;
+        totalCarbs += current->carbs;
+        totalFat += current->fat;
+        current = current->next;
+    }
+    float calories = (totalProtein + totalCarbs) * 4 + totalFat * 9;
+    std::cout << "Total Protein: " << totalProtein << "g\n";
+    std::cout << "Total Carbs  : " << totalCarbs << "g\n";
+    std::cout << "Total Fat    : " << totalFat << "g\n";
+    std::cout << "Total Calories: " << calories << " kcal\n";
+}
+
+void FoodTracker::searchFood(const std::string& name) const {
+    FoodNode* current = head;
+    while (current) {
+    if (current->foodName == name) {
+        std::cout << "Found: " << current->foodName << "\nProtein: " << current->protein
+         << "g, Carbs: " << current->carbs << "g, Fat: " << current->fat << "g\n";
+  return;
+  }
+     current = current->next;
+    }
+    std::cout << "Food not found.\n";
+}
+
+void FoodTracker::sortFoods() {
+    if (!head || !head->next) return;
+
+    bool swapped;
+    do {
+    swapped = false;
+    FoodNode* current = head;
+     FoodNode* prev = nullptr;
+    while (current->next) {
+    if (current->foodName > current->next->foodName) {
+        FoodNode* tmp = current->next;
+        current->next = tmp->next;
+      tmp->next = current;
+
+    if (prev) prev->next = tmp;
+        else head = tmp;
+swapped = true;
+ prev = tmp;
+     } 
+     else {
+         prev = current;
+         current = current->next;
+            }
+        }
+    } while (swapped);
+}
+
+void FoodTracker::saveToFile(const std::string& filename) const {
+    std::ofstream outFile(filename);
+    if (!outFile) {
+    std::cout << "Failed to open file.\n";
+     return;
+    }
+    FoodNode* current = head;
+    while (current) {
+     outFile << current->foodName << "," 
+     << current->protein << "," 
+     << current->carbs << "," 
+     << current->fat << "\n";
+    current = current->next;
+    }
+    outFile.close();
+    std::cout << "Data saved.\n";
+}
+
+void FoodTracker::loadFromFile(const std::string& filename) {
+    std::ifstream inFile(filename);
+    if (!inFile) {
+        std::cout << "Failed to open file.\n";
+        return;
+    }
+    while (head) {
+        FoodNode* temp = head;
+        head = head->next;
+        delete temp;
+    }
+
+    std::string line;
+ while (std::getline(inFile, line)) {
+       std::stringstream ss(line);
+    std::string name;
+    float p, c, f;
+
+        std::getline(ss, name, ',');
+        ss >> p;
+        ss.ignore();
+        ss >> c;
+        ss.ignore();
+        ss >> f;
+
+        addFood(name, p, c, f);
+    }
+    inFile.close();
+    std::cout << "Data loaded.\n";
+}
